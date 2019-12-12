@@ -40,7 +40,7 @@ columns_cer = columns_heat = [
     'GMV_t60', 'discount_rate_t60', 'pay_items_t60', 'inv_num_t60', 'PMV_t60'
 
 ]
-common_train2.train(train_data_path, result_dir, columns_heat, columns_cer,
+common_train2.train(train_data_path, result_dir, columns_heat, columns_cer, model_sv_dir,
                     heat_model_max_depth=10,
                     heat_model_max_leaf_nodes=None,
                     cer_model_max_depth=10,
@@ -67,6 +67,12 @@ def train(train_data_path, result_dir,
         训练数据文件路径
     result_dir：
         结果文件夹
+    columns_heat:
+        热度模型特征
+    columns_cer：
+        效率模型特征
+    model_save_dir：
+        模型保存地址
     heat_model_max_depth=None：
         热度模型最大深度参数
     heat_model_max_leaf_nodes=None：
@@ -92,6 +98,14 @@ def train(train_data_path, result_dir,
         格式为字典，比如{max_depth:[8,9,10,11], max_leaf_nodes:list(range(10,100,10))}
     grid_search_cer=None:
         热度模型参数搜索的参数值取值，默认为None，同上。
+    t_7_30=False:
+        true表示只选择t t7 t30特征
+    t_7_15_60=False：
+        true表示只选择t7 t15 t60特征
+    t_all=False：
+        true表示选择所有t特征   
+        
+    
 
     其中train_data_path, result_dir为必选参数，其他根据需要选择。
     例如，如果是生成中间文件并进行参数搜索：
