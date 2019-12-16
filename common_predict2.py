@@ -1,18 +1,11 @@
-import sklearn.tree
 import pickle
-import os
 import pandas
 import dataprocess2
 import time
 import random
+import numpy as np
 encoding = 'utf8'
 
-def performance_score(heat, cer):
-    for i in range(heat.size):
-        a = round(random.uniform(0,0.05), 4)
-        b = round(random.uniform(0,0.1), 4)
-        heat[i] = heat[i]*(1-a)
-        cer[i] = cer[i]*(1+b)
 
 
 def predict(predict_data_path,
@@ -28,8 +21,7 @@ def predict(predict_data_path,
             t_all=False,
             p_score=True,
             t = 0,
-            a = 50,
-            r = 0.8,
+            a = 25,
             warning = False,
             show = False):
     '''
@@ -52,6 +44,8 @@ def predict(predict_data_path,
         是否将预测值发散，默认发散。
     t:
         保护周期
+    a:
+        保护范围
     warning:
         预警
     show:
@@ -121,13 +115,22 @@ def predict(predict_data_path,
     result_heat = reg_tree_heat.predict(X_heat)
     result_cer = reg_tree_cer.predict(X_cer)
 
-    #计算分
-    # cal = newdata[newdata.t != -1].index
-    # if not cal.empty:
-    #     result_cer[cal] = result_cer[cal]+a*(1-r**(t-newdata.loc[cal, 't']))
 
     if p_score:
-        performance_score(result_heat, result_cer)
+        # 计算分
+        cal = newdata[newdata.t != -1].index
+        if not cal.empty:
+            rd = pandas.Series(np.random.rand(len(cal))*0.05)
+            rd.index = cal
+            result_cer[cal] = (result_cer[cal] + a * (newdata.loc(cal, 't')+t) / t) * (1+rd)
+            result_heat[cal] = result_heat[cal] * (1+rd)
+        cal = newdata[newdata.t == -1].index
+        if not cal.empty:
+            rd = pandas.Series(np.random.rand(len(cal)))
+            rd.index = cal
+            result_cer[cal] = result_cer[cal] * (1+rd*0.1)
+            result_heat[cal] = result_heat[cal] * (1-rd*0.05)
+
     d = pandas.read_csv(predict_data_path[0:predict_data_path.rfind('.')] + '-clean' + '.csv', encoding=encoding)
     d['heat_predict'] = result_heat
     d['cer_predict'] = result_cer

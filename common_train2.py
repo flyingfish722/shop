@@ -11,7 +11,7 @@ import time
 import pickle
 import os
 import dataprocess2
-
+import r2_adjust
 coding = 'utf8'
 
 
@@ -205,6 +205,11 @@ def train(train_data_path, result_dir, columns_heat, columns_cer, model_save_dir
     X_cer_train, X_cer_test, y_cer_train, y_cer_test = train_test_split(
         X_cer, y_cer, test_size=0.3, random_state=0
     )
+    train_sample_count = X_heat_train.shape[0]
+    test_sample_count = X_heat_test.shape[0]
+    heat_feature_count = X_heat_train.shape[1]
+    cer_feature_count = X_cer_train.shape[1]
+
     # 交叉验证评估模型能力
     # print('评估模型能力..')
     # reg_tree = DecisionTreeRegressor()
@@ -253,10 +258,12 @@ def train(train_data_path, result_dir, columns_heat, columns_cer, model_save_dir
     print('热度回归树模型········')
     print('深度：', reg_tree_heat.get_depth())
     print('叶子节点数：', reg_tree_heat.get_n_leaves())
-    print('训练得分: ', round(reg_tree_heat.score(X_heat_train, y_heat_train), 4))
+    print('训练得分: ', round(r2_adjust.r2_adjust(reg_tree_heat.score(X_heat_train, y_heat_train),
+                                              train_sample_count, heat_feature_count), 4))
     print('开始测试...')
     start = time.time()
-    print('测试得分: ', round(reg_tree_heat.score(X_heat_test, y_heat_test), 4))
+    print('测试得分: ', round(r2_adjust.r2_adjust(reg_tree_heat.score(X_heat_test, y_heat_test),
+                                              test_sample_count, heat_feature_count), 4))
     end = time.time()
     print('用时：', round(end - start, 3), 's')
 
@@ -274,10 +281,12 @@ def train(train_data_path, result_dir, columns_heat, columns_cer, model_save_dir
     print('效率回归树模型········')
     print('深度：', reg_tree_cer.get_depth())
     print('叶子节点数：', reg_tree_cer.get_n_leaves())
-    print('训练得分: ', round(reg_tree_cer.score(X_cer_train, y_cer_train), 4))
+    print('训练得分: ', round(r2_adjust.r2_adjust(reg_tree_cer.score(X_cer_train, y_cer_train),
+                                              train_sample_count, cer_feature_count), 4))
     print('开始测试...')
     start = time.time()
-    print('测试得分: ', round(reg_tree_cer.score(X_cer_test, y_cer_test), 4))
+    print('测试得分: ', round(r2_adjust.r2_adjust(reg_tree_cer.score(X_cer_test, y_cer_test),
+                                              test_sample_count, cer_feature_count), 4))
     end = time.time()
     print('用时：', round(end - start, 3), 's')
 

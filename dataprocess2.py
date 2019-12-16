@@ -19,9 +19,18 @@ def add_feature(df, feature, dates):
     print(feature, ':完成')
 
 
-def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=False, t_all=False):
-    start = end = 0
-    ts = te = 0
+def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=False, t_all=False, NEW_ITEMS=True):
+    """
+    :param olddatapath: path of file need to process
+    :param purpose: 'train' or 'predict', the former is for train while the latter is for predict
+    :param outfile: where to save the output, default None means not to save
+    :param t: protecting days for new items
+    :param t_7_30: set True to choose _t, _t7 and _t30 features
+    :param t_7_15_60: set True to choose _t, _t7, _t15 and _t60 features
+    :param t_all: set True to choose all _t features
+    :param NEW_ITEMS: whether to detect new items
+    :return: None
+    """
     ts = time.time()
     print('开始读取数据...')
     data = pandas.read_csv(olddatapath, encoding=coding, engine='python')
@@ -44,10 +53,10 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
     data = data[data.retail_amount != 0]
     print('-----------------------------------')
 
-    print('去除uv,库存和销量都为0且效率低于5的数据')
-    tmp = data[(data.uv == 0) & (data.inv_num == 0) & (data.pay_items == 0) & (data.cer <= 5)]
+    print('去除uv,库存和销量都为0的数据')
+    tmp = data[(data.uv == 0) & (data.inv_num == 0) & (data.pay_items == 0)]
     print('这种数据有', tmp.shape[0], '条')
-    data = data[(data.uv != 0) | (data.inv_num != 0) | (data.pay_items != 0) | (data.cer > 5)]
+    data = data[(data.uv != 0) | (data.inv_num != 0) | (data.pay_items != 0)]
     data.index = range(len(data))
     print('-----------------------------------')
 
@@ -75,17 +84,19 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
     print('更新onshelf_date')
     start = time.time()
     start_index = data[data.data_date == olddate[30]].index[0]
-    for i in range(start_index, len(data)):
-
-        if data.loc[i, 'data_date'] != data.loc[i - 1, 'data_date'] or i == start_index:
-            dateIndexInOlddate = olddate.index(data.loc[i, 'data_date'])
-            dstart = data[data.data_date == olddate[dateIndexInOlddate - 30]].index[0]
-            dend = data[data.data_date == olddate[dateIndexInOlddate - 1]].index.tolist()[-1]
-            tmp = data.loc[dstart:dend]
-        if tmp[tmp.spu == data.loc[i, 'spu']].empty:
-            tmp1 = data.loc[i:]
-            data.loc[tmp1[tmp1.spu == tmp1.loc[i, 'spu']].index, 'onshelf_date'] = data.loc[i, 'data_date']
-            # print('更新',  tmp1[tmp1.spu == tmp1.loc[i,'spu']].index.tolist())
+    if NEW_ITEMS:
+        for i in range(start_index, len(data)):
+            if data.loc[i, 'data_date'] != data.loc[i - 1, 'data_date'] or i == start_index:
+                dateIndexInOlddate = olddate.index(data.loc[i, 'data_date'])
+                dstart = data[data.data_date == olddate[dateIndexInOlddate - 30]].index[0]
+                dend = data[data.data_date == olddate[dateIndexInOlddate - 1]].index.tolist()[-1]
+                tmp = data.loc[dstart:dend]
+            if tmp[tmp.spu == data.loc[i, 'spu']].empty:
+                tmp1 = data.loc[i:]
+                data.loc[tmp1[tmp1.spu == tmp1.loc[i, 'spu']].index, 'onshelf_date'] = data.loc[i, 'data_date']
+                # print('更新',  tmp1[tmp1.spu == tmp1.loc[i,'spu']].index.tolist())
+    else:
+        data['onshelf_date'] = data['onshelf_date'].fillna('no date')
     end = time.time()
     print('耗时：', round(end - start, 3), 's')
     print('------------------------------------')
@@ -104,7 +115,6 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
             i_spu_list = data[data.spu == i_spu].index.tolist()
             i_index = i_spu_list.index(i)
             dict_indexs[i_spu] = [i_spu_list, i_index]
-
         else:
             dict_indexs[i_spu][1] += 1
             i_index = dict_indexs[i_spu][1]
@@ -116,6 +126,7 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
         if data.loc[i, 'onshelf_date'] in olddate:
             days = dateIndexInOlddate - olddate.index(data.loc[i, 'onshelf_date'])
             if t_all:
+                t_7_30 = t_7_15_60 = False
                 if days >= 60:
                     for k in [7, 15, 30, 60]:
                         dstart = data[data.data_date == olddate[dateIndexInOlddate - k]].index[0]
