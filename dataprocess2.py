@@ -96,7 +96,7 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
                 data.loc[tmp1[tmp1.spu == tmp1.loc[i, 'spu']].index, 'onshelf_date'] = data.loc[i, 'data_date']
                 # print('更新',  tmp1[tmp1.spu == tmp1.loc[i,'spu']].index.tolist())
     else:
-        data['onshelf_date'] = data['onshelf_date'].fillna('no date')
+        data['onshelf_date'] = 'no date'
     end = time.time()
     print('耗时：', round(end - start, 3), 's')
     print('------------------------------------')

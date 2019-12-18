@@ -5,8 +5,6 @@ import re
 
 p = os.path.abspath(sys.argv[0])
 p = re.findall(r'.+[\\/]', p)[0][:-1]
-if not os.path.exists(os.path.join(p, 'result')):
-    os.mkdir(os.path.join(p, 'result'))
 rootdir = p
 for i in range(2):
     rootdir = re.findall(r'.+[\\/]', rootdir)[0][:-1]
@@ -15,7 +13,12 @@ import common_train2
 # xxx 是预测数据的文件名
 train_data_path = os.path.join(p, 'xxx.csv')
 result_dir = os.path.join(p, 'result')
-model_sv_dir = os.path.join(p, )
+if not os.path.exists(result_dir):
+    os.mkdir(result_dir)
+# aaa 设置为保存模型的文件夹
+model_sv_dir = os.path.join(rootdir, 'model', 'aaa')
+if not os.path.exists(model_sv_dir):
+    os.mkdir(model_sv_dir)
 outfilewithnewfeature = os.path.join(p, 'bbwithnewfeature.csv')
 columns_cer = columns_heat = [
     'uv', 'transrare', 'atc_num', 'collection_num',
