@@ -140,7 +140,8 @@ def train(train_data_path, result_dir, columns_heat, columns_cer, model_save_dir
           grid_search_cer=None,
           t_7_30=False,
           t_7_15_60=False,
-          t_all=False
+          t_all=False,
+          NEW_ITEMS=True
           ):
     '''
     train_data_path：
@@ -188,7 +189,7 @@ def train(train_data_path, result_dir, columns_heat, columns_cer, model_save_dir
     if not dealt:
         # 构建特征值
         data = dataprocess2.process(train_data_path, 'train', outfilewithnewfeature,
-                                    t_all=t_all, t_7_30=t_7_30, t_7_15_60=t_7_15_60)
+                                    t_all=t_all, t_7_30=t_7_30, t_7_15_60=t_7_15_60, NEW_ITEMS=NEW_ITEMS)
     else:
         data = pandas.read_csv(dealt, encoding=coding)
 

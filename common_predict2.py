@@ -124,7 +124,7 @@ def predict(predict_data_path,
         if not cal.empty:
             rd = pandas.Series(np.random.rand(len(cal)) * 0.05)
             rd.index = cal
-            result_cer[cal] = (result_cer[cal] + a * (newdata.loc[cal, 't'] + t) / t) #* (1 + rd)
+            result_cer[cal] = (result_cer[cal] + a * (2 - newdata.loc[cal, 't'] / t)) #* (1 + rd)
             result_heat[cal] = result_heat[cal] * (1 + rd)
         cal = newdata[newdata.t == -1].index
         if not cal.empty:
