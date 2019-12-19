@@ -20,6 +20,7 @@ def predict(predict_data_path,
             t_7_15_60=False,
             t_all=False,
             p_score=True,
+			add_score=True,
             t=15,
             a=25,
             warning=False,
@@ -39,10 +40,9 @@ def predict(predict_data_path,
     传入，省去数据处理时间。
     dealt=None：
         默认为None，如果已经生成过中间文件，则可以将文件路径传入，省去数据处理时间。
-    new_date_start=None：
-        预测数据日期。例如预测2019/9/15或者2019/9/15-2019/9/21，则new_date_start = '2019/9/15'
     p_score:
         是否将预测值发散，默认发散。
+	add_score: 新品加分
     t:
         保护周期
     a:
@@ -119,12 +119,15 @@ def predict(predict_data_path,
     result_cer = reg_tree_cer.predict(X_cer)
 
     if p_score:
-        # 计算分
+        # 表现分
         cal = newdata[newdata.t != -1].index
         if not cal.empty:
             rd = pandas.Series(np.random.rand(len(cal)) * 0.05)
             rd.index = cal
-            result_cer[cal] = (result_cer[cal] + a * (2 - newdata.loc[cal, 't'] / t)) #* (1 + rd)
+			if add_score:
+				result_cer[cal] = (result_cer[cal] + a * (2 - newdata.loc[cal, 't'] / t)) * (1 + rd)
+			else:
+				result_cer[cal] = (result_cer[cal] * (1 + rd)
             result_heat[cal] = result_heat[cal] * (1 + rd)
         cal = newdata[newdata.t == -1].index
         if not cal.empty:
@@ -132,7 +135,9 @@ def predict(predict_data_path,
             rd.index = cal
             result_cer[cal] = result_cer[cal] * (1 + rd * 0.1)
             result_heat[cal] = result_heat[cal] * (1 - rd * 0.05)
-
+    elif add_score:
+	result_cer[cal] = (result_cer[cal] + a * (2 - newdata.loc[cal, 't'] / t))
+	
     d = pandas.read_csv(predict_data_path[0:predict_data_path.rfind('.')] + '-clean' + '.csv', encoding=encoding)
     d['heat_predict'] = result_heat
     d['cer_predict'] = result_cer
