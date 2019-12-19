@@ -1,6 +1,6 @@
 # shop-project
 analysis of degree of welcome for commodety 
-文件夹
+
 data：训练数据
 document：相关文件
 model：模型
