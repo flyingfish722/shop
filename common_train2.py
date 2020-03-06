@@ -176,7 +176,7 @@ def train(train_data_path, result_dir, columns_heat, columns_cer, model_save_dir
         同上
     grid_search_heat=None:
         热度模型参数搜索的参数值取值，默认为None，不进行参数搜索。常用的比如max_leaf_nodes, max_depth, min_samples_split等参数。
-        格式为字典，比如{max_depth:[8,9,10,11], max_leaf_nodes:list(range(10,100,10))}
+        格式为字典，比如{'max_depth':[8,9,10,11], 'max_leaf_nodes':list(range(10,100,10))}
     grid_search_cer=None:
         热度模型参数搜索的参数值取值，默认为None，同上。
     t_7_30=False:

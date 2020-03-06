@@ -2,21 +2,29 @@
 import sys
 import os
 import re
+import json
 
+# 获取脚本所在目录绝对路径p
 p = os.path.abspath(sys.argv[0])
 p = re.findall(r'.+[\\/]', p)[0][:-1]
+
+# 获取工程根目录
 rootdir = p
 for i in range(2):
     rootdir = re.findall(r'.+[\\/]', rootdir)[0][:-1]
 sys.path.append(rootdir)
 import common_train2
-# xxx 是预测数据的文件名
+
+# xxx 是预测数据的文件名-------
 train_data_path = os.path.join(p, 'xxx.csv')
+#------------------------------
 result_dir = os.path.join(p, 'result')
 if not os.path.exists(result_dir):
     os.mkdir(result_dir)
-# aaa 设置为保存模型的文件夹
+    
+# aaa 设置为保存模型的文件夹------------
 model_sv_dir = os.path.join(rootdir, 'model', 'aaa')
+#--------------------------------------
 if not os.path.exists(model_sv_dir):
     os.mkdir(model_sv_dir)
 outfilewithnewfeature = os.path.join(p, 'bbwithnewfeature.csv')
@@ -43,13 +51,28 @@ columns_cer = columns_heat = [
     'GMV_t60', 'discount_rate_t60', 'pay_items_t60', 'inv_num_t60', 'PMV_t60'
 
 ]
-common_train2.train(train_data_path, result_dir, columns_heat, columns_cer, model_sv_dir,
+
+config_file = os.path.join(model_sv_dir, 'config.json')
+config = {}
+config['columns_heat'] = columns_heat
+config['columns_cer'] = columns_cer
+# 以下三选一，设为True
+config['t_all'] = True
+config['t_7_30'] = False
+config['t_7_15_60'] = False
+# ---------------------
+with open(config_file, 'w') as cf:
+    json.dump(config, cf)
+
+common_train2.train(train_data_path, model_sv_dir, columns_heat, columns_cer, model_sv_dir,
                     heat_model_max_depth=10,
                     heat_model_max_leaf_nodes=None,
                     cer_model_max_depth=10,
                     cer_model_max_leaf_nodes=None,
                     outfilewithnewfeature=outfilewithnewfeature,
-                    t_all=True)
+                    t_7_30=config['t_7_30'],
+                    t_7_15_60=config['t_7_15_60'],
+                    t_all=config['t_all'])
 '''
 train() 参数说明:
 def train(train_data_path, result_dir,

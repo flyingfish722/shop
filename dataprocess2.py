@@ -33,7 +33,8 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
     """
     ts = time.time()
     print('开始读取数据...')
-    data = pandas.read_csv(olddatapath, encoding=coding, engine='python')
+    data = pandas.read_csv(olddatapath, encoding=coding)
+    print('数据读取成功')
     # 获取数据的日期
     old_date = data['data_date'].tolist()
     olddate = []
@@ -95,12 +96,13 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
                 tmp1 = data.loc[i:]
                 data.loc[tmp1[tmp1.spu == tmp1.loc[i, 'spu']].index, 'onshelf_date'] = data.loc[i, 'data_date']
                 # print('更新',  tmp1[tmp1.spu == tmp1.loc[i,'spu']].index.tolist())
+        data['onshelf_date'] = data['onshelf_date'].fillna('old item')
     else:
         data['onshelf_date'] = 'no date'
     end = time.time()
     print('耗时：', round(end - start, 3), 's')
     print('------------------------------------')
-    # data['onshelf_date'] = data['onshelf_date'].fillna('1/1/2018')
+    
 
     print('生成_t特征')
     start = time.time()
@@ -547,6 +549,7 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
     columns.extend(['t', 'heat', 'cer'])
     new_data = data.loc[start_index:, columns]
     new_data.index = range(len(new_data))
+    new_data.inv_num_rate = new_data.inv_num_rate.fillna(0)
     if outfile:
         print('开始导出新文件...')
         start = time.time()
@@ -558,13 +561,8 @@ def process(olddatapath, purpose, outfile=None, t=0, t_7_30=False, t_7_15_60=Fal
     print('\n总时间：', round(te - ts, 3), 's')
     return new_data
 
-
+    
 if __name__ == '__main__':
-    data = pandas.read_csv('bb.csv', encoding=coding)
-    old_date = data['data_date'].tolist()
-    old_date_without_repeat = []
-    for each in old_date:
-        if each not in old_date_without_repeat:
-            old_date_without_repeat.append(each)
-    new_date = old_date_without_repeat[60:]
-    process('bb.csv', old_date_without_repeat, new_date, outfile='middle.csv')
+    path = r'E:\shop-project-master\新建文件夹\predict\idx\CB.csv'
+    process(path, 'predict',
+            outfile=None, t=0, t_7_30=False, t_7_15_60=False, t_all=True, NEW_ITEMS=True)
